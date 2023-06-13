@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import typing
 from datetime import datetime
 from io import IOBase
 from typing import BinaryIO, Dict, List, Optional, Any
@@ -401,9 +402,14 @@ class Object(SampleDBObject):
             raise TypeError()
 
 
-def get_list(q: str = "", action_id: int = -1, action_type: str = "",
-             limit: int = -1, offset: int = -1,
-             name_only: bool = False) -> List[Object]:
+def get_list(
+        q: str = "",
+        action_id: typing.Optional[int] = None,
+        action_type_id: typing.Optional[int] = None,
+        limit: typing.Optional[int] = None,
+        offset: typing.Optional[int] = None,
+        name_only: bool = False
+    ) -> List[Object]:
     """Get a list of all objects visible to the current user.
 
     The list only contains the current version of each object. By passing the
@@ -421,29 +427,34 @@ def get_list(q: str = "", action_id: int = -1, action_type: str = "",
 
     Args:
         q (str): Search string for advanced search, `see here. <https://scientific-it-systems.iffgit.fz-juelich.de/SampleDB/user_guide/objects.html#advanced-search>`__
-        action_id (int): Filter by action ID.
-        action_type (str): Filter by action type.
-        limit (int): Limit number of results (helpful for pagination).
-        offset (int): Offset for limited retrieval of results (pagination).
-        name_only (bool): Only names will be returned, no other information.
+        action_id (int | None): Filter by action ID.
+        action_type_id (int | None): Filter by action type ID.
+        limit (int | None): Limit number of results (helpful for pagination).
+        offset (int | None): Offset for limited retrieval of results (pagination).
+        name_only (bool): Only names will be returned, no other information. Defaults to ``false``
 
     Returns:
         List: List of :class:`~sampledbapi.objects.Object`.
     """
-    if (isinstance(q, str) and isinstance(action_id, int) and
-            isinstance(action_type, str) and isinstance(limit, int) and
-            isinstance(offset, int) and isinstance(name_only, bool)):
+    if (
+        isinstance(q, str) and
+        (action_id is None or isinstance(action_id, int)) and
+        (action_id is None or isinstance(action_type_id, int)) and
+        (action_id is None or isinstance(limit, int)) and
+        (action_id is None or isinstance(offset, int)) and
+        isinstance(name_only, bool)
+    ):
         s = "objects"
         pars: Dict[str, Any] = {}
         if q != "":
             pars["q"] = q
-        if action_id > 0:
+        if action_id:
             pars["action_id"] = action_id
-        if action_type != "":
-            pars["action_type"] = action_type
-        if limit > 0:
+        if action_type_id != -1:
+            pars["action_type"] = action_type_id
+        if limit:
             pars["limit"] = limit
-        if offset > 0:
+        if offset:
             pars["offset"] = offset
         if name_only:
             pars["name_only"] = "true"
